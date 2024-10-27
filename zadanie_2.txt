@@ -1,0 +1,346 @@
+I.	Usuń wszystkie tabele ze swojej bazy.
+
+DROP TABLE "STRAMKOA"."REGIONS" CASCADE CONSTRAINTS PURGE
+DROP TABLE "STRAMKOA"."COUNTRIES" CASCADE CONSTRAINTS PURGE
+DROP TABLE "STRAMKOA"."LOCATIONS" CASCADE CONSTRAINTS PURGE
+DROP TABLE "STRAMKOA"."DEPARTMENTS" CASCADE CONSTRAINTS PURGE
+DROP TABLE "STRAMKOA"."EMPLOYEES" CASCADE CONSTRAINTS PURGE
+DROP TABLE "STRAMKOA"."JOB_HISTORY" CASCADE CONSTRAINTS PURGE
+DROP TABLE "STRAMKOA"."JOBS" CASCADE CONSTRAINTS PURGE
+
+
+II.	Przekopiuj wszystkie tabele wraz z danymi od użytkownika HR. Poustawiaj klucze główne i obce.
+
+declare
+  l_sql varchar2(32767);
+  c_tab_comment varchar2(32767);
+  procedure run(p_sql varchar2) as
+  begin
+     execute immediate p_sql;
+
+  end;
+begin
+run('create table "STRAMKOA".COUNTRIES as select * from "HR"."COUNTRIES" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'COUNTRIES' and comments is not null;
+  run('comment on table STRAMKOA.COUNTRIES is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'COUNTRIES')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'COUNTRIES' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.COUNTRIES.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".DEPARTMENTS as select * from "HR"."DEPARTMENTS" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'DEPARTMENTS' and comments is not null;
+  run('comment on table STRAMKOA.DEPARTMENTS is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'DEPARTMENTS')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'DEPARTMENTS' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.DEPARTMENTS.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".EMPLOYEES as select * from "HR"."EMPLOYEES" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'EMPLOYEES' and comments is not null;
+  run('comment on table STRAMKOA.EMPLOYEES is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'EMPLOYEES')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'EMPLOYEES' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.EMPLOYEES.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".JOB_GRADES as select * from "HR"."JOB_GRADES" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'JOB_GRADES' and comments is not null;
+  run('comment on table STRAMKOA.JOB_GRADES is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'JOB_GRADES')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'JOB_GRADES' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.JOB_GRADES.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".JOB_HISTORY as select * from "HR"."JOB_HISTORY" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'JOB_HISTORY' and comments is not null;
+  run('comment on table STRAMKOA.JOB_HISTORY is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'JOB_HISTORY')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'JOB_HISTORY' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.JOB_HISTORY.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".JOBS as select * from "HR"."JOBS" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'JOBS' and comments is not null;
+  run('comment on table STRAMKOA.JOBS is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'JOBS')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'JOBS' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.JOBS.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".LOCATIONS as select * from "HR"."LOCATIONS" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'LOCATIONS' and comments is not null;
+  run('comment on table STRAMKOA.LOCATIONS is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'LOCATIONS')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'LOCATIONS' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.LOCATIONS.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".PRODUCTS as select * from "HR"."PRODUCTS" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'PRODUCTS' and comments is not null;
+  run('comment on table STRAMKOA.PRODUCTS is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'PRODUCTS')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'PRODUCTS' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.PRODUCTS.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".REGIONS as select * from "HR"."REGIONS" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'REGIONS' and comments is not null;
+  run('comment on table STRAMKOA.REGIONS is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'REGIONS')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'REGIONS' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.REGIONS.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+begin
+run('create table "STRAMKOA".SALES as select * from "HR"."SALES" where '||11||' = 11');
+  begin
+  select comments into c_tab_comment from sys.all_TAB_comments where owner = 'HR' and table_name = 'SALES' and comments is not null;
+  run('comment on table STRAMKOA.SALES is '||''''||REPLACE(c_tab_comment, q'[']', q'['']')||'''');
+
+  for tc in (select column_name from sys.all_tab_cols where owner = 'HR' and table_name = 'SALES')
+      loop
+     for c in (select comments from sys.all_col_comments where owner = 'HR' and table_name = 'SALES' and column_name=tc.column_name)
+     loop
+     run ('comment on column STRAMKOA.SALES.'||tc.column_name||' is '||''''||REPLACE(c.comments, q'[']', q'['']')||'''');
+   end loop;
+  end loop;
+  EXCEPTION
+    WHEN OTHERS THEN NULL;
+  end;
+end;
+
+
+*DODAWANIE KLUCZY DO TABEL Z ZADANIA 1 TAK SAMO*
+
+
+ALTER TABLE JOB_GRADES
+ADD CONSTRAINT JOB_GRADES_PK PRIMARY KEY
+(
+  GRADE
+)
+ENABLE;
+
+
+CREATE SEQUENCE JOB_GRADES_SEQ1;
+
+
+CREATE TRIGGER JOB_GRADES_TRG1
+BEFORE INSERT ON JOB_GRADES
+FOR EACH ROW
+BEGIN
+  <<COLUMN_SEQUENCES>>
+  BEGIN
+    IF INSERTING AND :NEW.GRADE IS NULL THEN
+      SELECT JOB_GRADES_SEQ1.NEXTVAL INTO :NEW.GRADE FROM SYS.DUAL;
+    END IF;
+  END COLUMN_SEQUENCES;
+END;
+
+
+ALTER TABLE PRODUCTS
+MODIFY (PRODUCT_ID NOT NULL);
+
+
+ALTER TABLE PRODUCTS
+ADD CONSTRAINT PRODUCTS_PK PRIMARY KEY
+(
+  PRODUCT_ID
+)
+ENABLE;
+
+
+CREATE SEQUENCE PRODUCTS_SEQ;
+
+
+CREATE TRIGGER PRODUCTS_TRG
+BEFORE INSERT ON PRODUCTS
+FOR EACH ROW
+BEGIN
+  <<COLUMN_SEQUENCES>>
+  BEGIN
+    IF INSERTING AND :NEW.PRODUCT_ID IS NULL THEN
+      SELECT PRODUCTS_SEQ.NEXTVAL INTO :NEW.PRODUCT_ID FROM SYS.DUAL;
+    END IF;
+  END COLUMN_SEQUENCES;
+END;
+
+
+ALTER TABLE SALES
+MODIFY (SALE_ID NOT NULL);
+
+
+ALTER TABLE SALES
+ADD CONSTRAINT SALES_PK PRIMARY KEY
+(
+  SALE_ID
+)
+ENABLE;
+
+
+CREATE SEQUENCE SALES_SEQ;
+
+
+CREATE TRIGGER SALES_TRG
+BEFORE INSERT ON SALES
+FOR EACH ROW
+BEGIN
+  <<COLUMN_SEQUENCES>>
+  BEGIN
+    IF INSERTING AND :NEW.SALE_ID IS NULL THEN
+      SELECT SALES_SEQ.NEXTVAL INTO :NEW.SALE_ID FROM SYS.DUAL;
+    END IF;
+  END COLUMN_SEQUENCES;
+END;
+
+
+ALTER TABLE SALES
+ADD CONSTRAINT SALES_FK1 FOREIGN KEY
+(
+  EMPLOYEE_ID
+)
+REFERENCES EMPLOYEES
+(
+  EMPLOYEE_ID
+)
+ON DELETE SET NULL ENABLE;
+
+
+ALTER TABLE SALES
+ADD CONSTRAINT SALES_FK2 FOREIGN KEY
+(
+  PRODUCT_ID
+)
+REFERENCES PRODUCTS
+(
+  PRODUCT_ID
+)
+ON DELETE SET NULL ENABLE;
+
+
+III.	Stwórz następujące perspektywy lub zapytania, dodaj wszystko do swojego repozytorium:
+1.	Z tabeli employees wypisz w jednej kolumnie nazwisko i zarobki – nazwij kolumnę wynagrodzenie, dla osób z departamentów 20 i 50 z zarobkami pomiędzy 2000 a 7000, uporządkuj kolumny według nazwiska
+
+2.	Z tabeli employees wyciągnąć informację data zatrudnienia, nazwisko oraz kolumnę podaną przez użytkownika dla osób mających menadżera zatrudnionych w roku 2005. Uporządkować według kolumny podanej przez użytkownika
+
+3.	Wypisać imiona i nazwiska razem, zarobki oraz numer telefonu porządkując dane według pierwszej kolumny malejąco, a następnie drugiej rosnąco (użyć numerów do porządkowania) dla osób z trzecią literą nazwiska ‘e’ oraz częścią imienia podaną przez użytkownika
+
+4.	Wypisać imię i nazwisko, liczbę miesięcy przepracowanych – funkcje months_between oraz round, oraz kolumnę wysokość_dodatku jako (użyć CASE lub DECODE):
+ 10% wynagrodzenia dla liczby miesięcy do 150
+ 20% wynagrodzenia dla liczby miesięcy od 150 do 200
+ 30% wynagrodzenia dla liczby miesięcy od 200
+ uporządkować według liczby miesięcy
+
+5.	Dla każdego działów, w których minimalna płaca jest wyższa niż 5000, wypisz sumę oraz średnią zarobków zaokrągloną do całości nazwij odpowiednio kolumny
+
+6.	Wypisać nazwisko, numer departamentu, nazwę departamentu, id pracy, dla osób z pracujących Toronto
+
+7.	Dla pracowników o imieniu „Jennifer” wypisz imię i nazwisko tego pracownika oraz osoby, które z nim współpracują
+
+8.	Wypisać wszystkie departamenty, w których nie ma pracowników
+
+9.	Skopiuj tabelę Job_grades od użytkownika HR
+
+10.	Wypisz imię i nazwisko, id pracy, nazwę departamentu, zarobki, oraz odpowiedni grade dla każdego pracownika
+
+11.	Wypisz imię nazwisko oraz zarobki dla osób, które zarabiają więcej niż średnia wszystkich, uporządkuj malejąco według zarobków
+
+12.	Wypisz id imie i nazwisko osób, które pracują w departamencie z osobami mającymi w nazwisku „u”
