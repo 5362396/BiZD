@@ -1,0 +1,237 @@
+1.  Stworzyć blok anonimowy wypisujący zmienną numer_max równą maksymalnemu numerowi Departamentu i dodaj do tabeli departamenty – departament z numerem o 10 wiekszym,
+typ pola dla zmiennej z nazwą nowego departamentu (zainicjować na EDUCATION) ustawić taki jak dla pola department_name w tabeli (%TYPE)
+
+DECLARE
+    numer_max NUMBER;
+    new_department departments.department_name%TYPE := 'EDUCATION';
+BEGIN
+    SELECT MAX(department_id) INTO numer_max FROM departments;
+    numer_max := numer_max + 10;
+
+    INSERT INTO departments (department_id, department_name)
+    VALUES (numer_max, new_department);
+
+    DBMS_OUTPUT.PUT_LINE('Dodano nowy departament o numerze: ' || numer_max || ' i nazwie: ' || new_department);
+END;
+
+
+2.  Do poprzedniego skryptu dodaj instrukcje zmieniającą location_id (3000) dla dodanego departamentu
+
+DECLARE
+    numer_max NUMBER;
+    new_department departments.department_name%TYPE := 'EDUCATION';
+BEGIN
+    SELECT MAX(department_id) INTO numer_max FROM departments;
+    numer_max := numer_max + 10;
+
+    INSERT INTO departments (department_id, department_name)
+    VALUES (numer_max, new_department);
+
+    UPDATE departments
+    SET location_id = 3000
+    WHERE department_id = numer_max;
+
+    DBMS_OUTPUT.PUT_LINE('Dodano nowy departament o numerze: ' || numer_max || ' i nazwie: ' || new_department || ' z location_id = 3000');
+END;
+
+
+3.   Stwórz tabelę nowa z jednym polem typu varchar a następnie wpisz do niej za pomocą pętli liczby od 1 do 10 bez liczb 4 i 6
+
+BEGIN
+    EXECUTE IMMEDIATE 'CREATE TABLE nowa (liczba VARCHAR(10))';
+
+    FOR i IN 1..10 LOOP
+        IF i != 4 AND i != 6 THEN
+            INSERT INTO nowa (liczba) VALUES (TO_CHAR(i));
+        END IF;
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE('Liczby od 1 do 10 (bez 4 i 6) zostały dodane do tabeli nowa.');
+END;
+
+
+3.  Stwórz tabelę nowa z jednym polem typu varchar a następnie wpisz do niej za pomocą pętli liczby od 1 do 10 bez liczb 4 i 6
+
+CREATE TABLE nowa (liczba VARCHAR(10));
+
+
+4.  Wyciągnąć informacje z tabeli countries do jednej zmiennej (%ROWTYPE) dla kraju o identyfikatorze ‘CA’. Wypisać nazwę i region_id na ekran
+
+DECLARE
+    country_record countries%ROWTYPE;
+BEGIN
+    SELECT * INTO country_record FROM countries WHERE country_id = 'CA';
+
+    DBMS_OUTPUT.PUT_LINE('Nazwa kraju: ' || country_record.country_name);
+    DBMS_OUTPUT.PUT_LINE('Region ID: ' || country_record.region_id);
+END;
+
+
+5.  Zadeklaruj kursor jako wynagrodzenie, nazwisko dla departamentu o numerze 50. Dla elementów kursora wypisać na ekran, jeśli wynagrodzenie jest wyższe niż 3100:
+nazwisko osoby i tekst ‘nie dawać podwyżki’ w przeciwnym przypadku: nazwisko + ‘dać podwyżkę’
+
+DECLARE
+    CURSOR pracownicy_cursor IS
+        SELECT salary, last_name
+        FROM employees
+        WHERE department_id = 50;
+
+    salary employees.salary%TYPE;
+    last_name employees.last_name%TYPE;
+BEGIN
+    FOR record IN pracownicy_cursor LOOP
+        IF record.salary > 3100 THEN
+            DBMS_OUTPUT.PUT_LINE(record.last_name || ': nie dawać podwyżki');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE(record.last_name || ': dać podwyżkę');
+        END IF;
+    END LOOP;
+END;
+
+
+6.  Zadeklarować kursor zwracający zarobki imię i nazwisko pracownika z parametrami, gdzie pierwsze dwa parametry określają widełki zarobków a trzeci część imienia pracownika.
+Wypisać na ekran pracowników:
+a.  z widełkami 1000- 5000 z częścią imienia a (może być również A)
+b.  z widełkami 5000-20000 z częścią imienia u (może być również U)
+
+DECLARE
+    CURSOR pracownicy_cursor (min_salary NUMBER, max_salary NUMBER, name_part VARCHAR2) IS
+        SELECT salary, first_name, last_name
+        FROM employees
+        WHERE salary BETWEEN min_salary AND max_salary
+        AND LOWER(first_name) LIKE '%' || LOWER(name_part) || '%';
+
+    salary employees.salary%TYPE;
+    first_name employees.first_name%TYPE;
+    last_name employees.last_name%TYPE;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Pracownicy z zarobkami między 1000 a 5000 i częścią imienia "a":');
+    OPEN pracownicy_cursor(1000, 5000, 'a');
+    LOOP
+        FETCH pracownicy_cursor INTO salary, first_name, last_name;
+        EXIT WHEN pracownicy_cursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(first_name || ' ' || last_name || ' - Zarobki: ' || salary);
+    END LOOP;
+    CLOSE pracownicy_cursor;
+
+    DBMS_OUTPUT.PUT_LINE('Pracownicy z zarobkami między 5000 a 20000 i częścią imienia "u":');
+    OPEN pracownicy_cursor(5000, 20000, 'u');
+    LOOP
+        FETCH pracownicy_cursor INTO salary, first_name, last_name;
+        EXIT WHEN pracownicy_cursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(first_name || ' ' || last_name || ' - Zarobki: ' || salary);
+    END LOOP;
+    CLOSE pracownicy_cursor;
+END;
+
+
+9.  Stwórz procedury:
+a.  dodającą wiersz do tabeli Jobs – z dwoma parametrami wejściowymi określającymi Job_id, Job_title, przetestuj działanie wrzuć wyjątki – co najmniej when others
+
+CREATE OR REPLACE PROCEDURE dodaj_job (job_id VARCHAR2, job_title VARCHAR2) IS
+BEGIN
+    INSERT INTO jobs (job_id, job_title)
+    VALUES (job_id, job_title);
+    DBMS_OUTPUT.PUT_LINE('Wiersz dodany pomyślnie.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Wystąpił błąd: ' || SQLERRM);
+END dodaj_job;
+
+
+b.  modyfikującą title w tabeli Jobs – z dwoma parametrami id dla którego ma być modyfikacja oraz nową wartość dla Job_title – przetestować działanie, dodać swój wyjątek dla no Jobs updated – najpierw sprawdzić numer błędu
+
+CREATE OR REPLACE PROCEDURE modyfikuj_job_title (input_job_id VARCHAR2, new_job_title VARCHAR2) IS
+BEGIN
+    UPDATE jobs
+    SET job_title = new_job_title
+    WHERE job_id = input_job_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'No jobs updated for job_id: ' || input_job_id);
+    END IF;
+    DBMS_OUTPUT.PUT_LINE('Job title zaktualizowany.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Wystąpił błąd: ' || SQLERRM);
+END modyfikuj_job_title;
+
+
+c.  usuwającą wiersz z tabeli Jobs o podanym Job_id – przetestować działanie, dodaj wyjątek dla no Jobs deleted
+
+CREATE OR REPLACE PROCEDURE usun_job (p_job_id VARCHAR2) IS
+BEGIN
+    DELETE FROM jobs
+    WHERE job_id = p_job_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'No jobs deleted for job_id: ' || p_job_id);
+    END IF;
+    DBMS_OUTPUT.PUT_LINE('Wiersz usunięty pomyślnie.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Wystąpił błąd: ' || SQLERRM);
+END usun_job;
+
+
+d.  Wyciągającą zarobki i nazwisko (parametry zwracane przez procedurę) z tabeli employees dla pracownika o przekazanym jako parametr id
+
+CREATE OR REPLACE PROCEDURE wyswietl_salary_lastname (p_employee_id NUMBER, p_salary OUT NUMBER, p_last_name OUT VARCHAR2) IS
+BEGIN
+    SELECT salary, last_name
+    INTO p_salary, p_last_name
+    FROM employees
+    WHERE employee_id = p_employee_id;
+
+    DBMS_OUTPUT.PUT_LINE('Zarobki: ' || p_salary || ', Nazwisko: ' || p_last_name);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Brak pracownika o podanym ID.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Wystąpił błąd: ' || SQLERRM);
+END wyswietl_salary_lastname;
+
+
+e.  dodającą do tabeli employees wiersz – większość parametrów ustawić na domyślne (id poprzez sekwencję),
+stworzyć wyjątek jeśli wynagrodzenie dodawanego pracownika jest wyższe niż 20000
+
+CREATE OR REPLACE PROCEDURE dodaj_employee(
+    p_first_name VARCHAR2 DEFAULT 'Jan',
+    p_last_name VARCHAR2 DEFAULT 'Kowalski',
+    p_email VARCHAR2 DEFAULT 'jan@kowalski.com',
+    p_phone_number VARCHAR2 DEFAULT '123.456.789',
+    p_hire_date DATE DEFAULT SYSDATE,
+    p_job_id VARCHAR2 DEFAULT 'IT_PROG',
+    p_salary NUMBER DEFAULT 10000,
+    p_commission_pct NUMBER DEFAULT NULL,
+    p_manager_id NUMBER DEFAULT NULL,
+    p_department_id NUMBER DEFAULT 10
+) AS
+    new_employee_id NUMBER;
+BEGIN
+    IF p_salary > 20000 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Wynagrodzenie nie może być wyższe niż 20000');
+    END IF;
+
+    SELECT employees_seq.NEXTVAL INTO new_employee_id FROM dual;
+
+    INSERT INTO employees (
+        employee_id, first_name, last_name, email, phone_number, hire_date,
+        job_id, salary, commission_pct, manager_id, department_id
+    )
+    VALUES (
+        new_employee_id, p_first_name, p_last_name, p_email, p_phone_number,
+        p_hire_date, p_job_id, p_salary, p_commission_pct, p_manager_id, p_department_id
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Nowy pracownik dodany: ' || p_first_name || ' ' || p_last_name);
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Wystąpił błąd: ' || SQLERRM);
+END dodaj_employee;
+
+BEGIN
+    add_employee(
+        p_first_name => 'Jan',
+    );
+END;
