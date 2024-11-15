@@ -1,0 +1,188 @@
+Stwórz funkcje:
+1.	Zwracającą nazwę pracy dla podanego parametru id, dodaj wyjątek, jeśli taka praca nie istnieje
+
+CREATE OR REPLACE FUNCTION get_job_title(p_job_id VARCHAR2)
+RETURN VARCHAR2 IS
+    v_job_title jobs.job_title%TYPE;
+BEGIN
+    SELECT job_title INTO v_job_title
+    FROM jobs
+    WHERE job_id = p_job_id;
+
+    RETURN v_job_title;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Praca o podanym ID nie istnieje');
+END get_job_title;
+
+
+2.	Zwracającą roczne zarobki (wynagrodzenie 12-to miesięczne plus premia jako wynagrodzenie * commission_pct) dla pracownika o podanym id
+
+CREATE OR REPLACE FUNCTION get_annual_salary(p_employee_id NUMBER)
+RETURN NUMBER IS
+    v_salary employees.salary%TYPE;
+    v_commission_pct employees.commission_pct%TYPE;
+BEGIN
+    SELECT salary, NVL(commission_pct, 0) INTO v_salary, v_commission_pct
+    FROM employees
+    WHERE employee_id = p_employee_id;
+
+    RETURN (v_salary * 12) + (v_salary * v_commission_pct);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Pracownik o podanym ID nie istnieje');
+END get_annual_salary;
+
+
+3.	Biorącą w nawias numer kierunkowy z numeru telefonu podanego jako varchar
+
+CREATE OR REPLACE FUNCTION format_phone_number(p_phone_number VARCHAR2)
+RETURN VARCHAR2 IS
+    v_formatted_phone VARCHAR2(20);
+BEGIN
+    v_formatted_phone := '(' || SUBSTR(p_phone_number, 1, 3) || ')' || SUBSTR(p_phone_number, 4);
+
+    RETURN v_formatted_phone;
+END format_phone_number;
+
+
+4.	Dla podanego w parametrze ciągu znaków zmieniającą pierwszą i ostatnią literę na wielką – pozostałe na małe
+
+CREATE OR REPLACE FUNCTION capitalize_first_last(p_text VARCHAR2)
+RETURN VARCHAR2 IS
+    v_result VARCHAR2(100);
+BEGIN
+    v_result := UPPER(SUBSTR(p_text, 1, 1)) ||
+                LOWER(SUBSTR(p_text, 2, LENGTH(p_text) - 2)) ||
+                UPPER(SUBSTR(p_text, -1, 1));
+    RETURN v_result;
+END capitalize_first_last;
+
+
+5.	Dla podanego peselu - przerabiającą pesel na datę urodzenia w formacie ‘yyyy-mm-dd’
+
+CREATE OR REPLACE FUNCTION pesel_to_birthdate(p_pesel VARCHAR2)
+RETURN DATE IS
+    v_year NUMBER(4);
+    v_month NUMBER(2);
+    v_day NUMBER(2);
+BEGIN
+    v_year := TO_NUMBER(SUBSTR(p_pesel, 1, 2));
+    v_month := TO_NUMBER(SUBSTR(p_pesel, 3, 2));
+    v_day := TO_NUMBER(SUBSTR(p_pesel, 5, 2));
+
+    IF v_month > 20 THEN
+        v_year := 2000 + v_year;
+        v_month := v_month - 20;
+    ELSE
+        v_year := 1900 + v_year;
+    END IF;
+
+    RETURN TO_DATE(v_year || '-' || v_month || '-' || v_day, 'YYYY-MM-DD');
+END pesel_to_birthdate;
+
+
+6.	Zwracającą liczbę pracowników oraz liczbę departamentów które znajdują się w kraju podanym jako parametr (nazwa kraju). W przypadku braku kraju - odpowiedni wyjątek
+
+CREATE OR REPLACE FUNCTION get_employee_department_count(p_country_name VARCHAR2)
+RETURN VARCHAR2 IS
+    v_employee_count NUMBER;
+    v_department_count NUMBER;
+BEGIN
+    SELECT COUNT(DISTINCT e.employee_id), COUNT(DISTINCT d.department_id)
+    INTO v_employee_count, v_department_count
+    FROM employees e
+    JOIN departments d ON e.department_id = d.department_id
+    JOIN locations l ON d.location_id = l.location_id
+    JOIN countries c ON l.country_id = c.country_id
+    WHERE c.country_name = p_country_name;
+
+    IF v_employee_count IS NULL OR v_department_count IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Brak danych dla podanego kraju');
+    END IF;
+
+    RETURN 'Liczba pracowników: ' || v_employee_count || ', Liczba departamentów: ' || v_department_count;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Brak danych dla podanego kraju');
+END get_employee_department_count;
+
+
+Stworzyć następujące wyzwalacze:
+1.	Stworzyć tabelę archiwum_departamentów (id, nazwa, data_zamknięcia, ostatni_manager jako imię i nazwisko). Po usunięciu departamentu dodać odpowiedni rekord do tej tabeli
+
+CREATE TABLE archiwum_departamentów (
+    id NUMBER PRIMARY KEY,
+    nazwa VARCHAR2(50),
+    data_zamknięcia DATE,
+    ostatni_manager VARCHAR2(100)
+);
+
+CREATE OR REPLACE TRIGGER trg_delete_department
+AFTER DELETE ON departments
+FOR EACH ROW
+BEGIN
+    INSERT INTO archiwum_departamentów (id, nazwa, data_zamknięcia, ostatni_manager)
+    VALUES (:OLD.department_id, :OLD.department_name, SYSDATE, :OLD.manager_id);
+END;
+
+
+2.	W razie UPDATE i INSERT na tabeli employees, sprawdzić czy zarobki łapią się w widełkach 2000 - 26000. Jeśli nie łapią się - zabronić dodania.
+Dodać tabelę złodziej(id, USER, czas_zmiany), której będą wrzucane logi, jeśli będzie próba dodania, bądź zmiany wynagrodzenia poza widełki.
+
+CREATE TABLE złodziej (
+    id NUMBER PRIMARY KEY,
+    USER VARCHAR2(30),
+    czas_zmiany TIMESTAMP
+);
+
+CREATE OR REPLACE TRIGGER trg_check_salary
+BEFORE INSERT OR UPDATE ON employees
+FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+    IF :NEW.salary < 2000 OR :NEW.salary > 26000 THEN
+        INSERT INTO złodziej (id, username, czas_zmiany)
+        VALUES (złodziej_seq.NEXTVAL, USER, SYSTIMESTAMP);
+        COMMIT;
+        RAISE_APPLICATION_ERROR(-20001, 'Wynagrodzenie poza dozwolonym zakresem!');
+    END IF;
+END;
+
+
+3.	Stworzyć sekwencję i wyzwalacz, który będzie odpowiadał za auto_increment w tabeli employees.
+
+CREATE SEQUENCE EMPLOYEES_SEQ;
+
+CREATE TRIGGER EMPLOYEES_TRG
+BEFORE INSERT ON EMPLOYEES
+FOR EACH ROW
+BEGIN
+  <<COLUMN_SEQUENCES>>
+  BEGIN
+    IF INSERTING AND :NEW.EMPLOYEE_ID IS NULL THEN
+      SELECT EMPLOYEES_SEQ.NEXTVAL INTO :NEW.EMPLOYEE_ID FROM SYS.DUAL;
+    END IF;
+  END COLUMN_SEQUENCES;
+END;
+
+
+4.	Stworzyć wyzwalacz, który zabroni dowolnej operacji na tabeli JOD_GRADES (INSERT, UPDATE, DELETE)
+
+CREATE OR REPLACE TRIGGER trg_no_operation_on_job_grades
+BEFORE INSERT OR UPDATE OR DELETE ON job_grades
+BEGIN
+    RAISE_APPLICATION_ERROR(-20002, 'Operacje na tabeli JOB_GRADES są zabronione.');
+END;
+
+
+5.	Stworzyć wyzwalacz, który przy próbie zmiany max i min salary w tabeli jobs zostawia stare wartości.
+
+CREATE OR REPLACE TRIGGER trg_remain_min_max_salary
+BEFORE UPDATE OF min_salary, max_salary ON jobs
+FOR EACH ROW
+BEGIN
+    :NEW.min_salary := :OLD.min_salary;
+    :NEW.max_salary := :OLD.max_salary;
+END;
