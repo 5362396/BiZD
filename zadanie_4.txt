@@ -401,3 +401,41 @@ CREATE OR REPLACE PACKAGE BODY my_package AS
 END my_package;
 
 
+2.	Stworzyć paczkę z procedurami i funkcjami do obsługi tabeli REGIONS (CRUD), gdzie odczyt z różnymi parametrami
+
+CREATE OR REPLACE PACKAGE regions_package AS
+    PROCEDURE create_region(p_region_id IN NUMBER, p_region_name IN VARCHAR2);
+    PROCEDURE read_region(p_region_id IN NUMBER, p_region_name OUT VARCHAR2);
+    PROCEDURE update_region(p_region_id IN NUMBER, p_new_name IN VARCHAR2);
+    PROCEDURE delete_region(p_region_id IN NUMBER);
+END regions_package;
+
+
+CREATE OR REPLACE PACKAGE BODY regions_package AS
+    PROCEDURE create_region(p_region_id IN NUMBER, p_region_name IN VARCHAR2) IS
+    BEGIN
+        INSERT INTO regions (region_id, region_name) VALUES (p_region_id, p_region_name);
+    END;
+
+    PROCEDURE read_region(p_region_id IN NUMBER, p_region_name OUT VARCHAR2) IS
+    BEGIN
+        SELECT region_name INTO p_region_name FROM regions WHERE region_id = p_region_id;
+    END;
+
+    PROCEDURE update_region(p_region_id IN NUMBER, p_new_name IN VARCHAR2) IS
+    BEGIN
+        UPDATE regions SET region_name = p_new_name WHERE region_id = p_region_id;
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20006, 'Region not found for update');
+        END IF;
+    END;
+
+    PROCEDURE delete_region(p_region_id IN NUMBER) IS
+    BEGIN
+        DELETE FROM regions WHERE region_id = p_region_id;
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Region not found for delete');
+        END IF;
+    END;
+END regions_package;
+
